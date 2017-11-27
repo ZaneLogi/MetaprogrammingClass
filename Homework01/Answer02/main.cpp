@@ -203,9 +203,25 @@ typename ReplaceAll<std::tuple<int, double, int>, int, long>::type replaceall_ty
 template <class Tuple> struct NoDuplicates;
 template <class Head, class ... Tail> struct NoDuplicates<std::tuple<Head, Tail...>>
 {
-    typedef typename NoDuplicates<std::tuple<Tail...>>::typelist_type L1;
-    typedef typename Erase<typename L1::tuple_type, Head>::typelist_type L2;
-    typedef typename Add<Head, L2>::type typelist_type;
+    typedef typename std::conditional<
+        IndexOf<std::tuple<Tail...>, Head>::value != -1,
+        typename EraseAll<std::tuple<Tail...>, Head>::typelist_type,
+        typename TypeList<Tail...>
+    >::type tail_typelist_type;
+
+    typedef typename NoDuplicates<typename tail_typelist_type::tuple_type>::typelist_type no_dups;
+
+    typedef typename std::conditional<
+        IndexOf<std::tuple<Tail...>, Head>::value != -1,
+        no_dups,
+        typename Add<Head, no_dups>::type
+    >::type typelist_type;
+        
+    typedef typename typelist_type::tuple_type type;
+};
+template <class T> struct NoDuplicates<std::tuple<T>>
+{
+    typedef TypeList<T> typelist_type;
     typedef typename typelist_type::tuple_type type;
 };
 template <> struct NoDuplicates<std::tuple<>>
@@ -214,12 +230,16 @@ template <> struct NoDuplicates<std::tuple<>>
     typedef typename typelist_type::tuple_type type;
 };
 
-// testing
-NoDuplicates<std::tuple<int>>::type noduplicates_test1;
-NoDuplicates<std::tuple<int, int>>::type noduplicates_test2;
-NoDuplicates<std::tuple<int, double, int>>::type noduplicates_test3;
-NoDuplicates<std::tuple<int, double, int, double, int>>::type noduplicates_test4;
-
+NoDuplicates<std::tuple<double>>::type no_dup_test1;
+NoDuplicates<std::tuple<double, int>>::type no_dup_test2;
+NoDuplicates<std::tuple<double, double>>::type no_dup_test3;
+NoDuplicates<std::tuple<double, double, int>>::type no_dup_test4;
+NoDuplicates<std::tuple<double, int, int>>::type no_dup_test5;
+NoDuplicates<std::tuple<int, double, int>>::type noduplicates_test6;
+NoDuplicates<std::tuple<int, double, int, double, int>>::type noduplicates_test7;
+NoDuplicates<std::tuple<int, double, char, double, int>>::type noduplicates_test8;
+NoDuplicates<std::tuple<char, int, double, int, double, int>>::type noduplicates_test9;
+NoDuplicates<std::tuple<int, double, int, double, int, char>>::type noduplicates_test10;
 
 
 int main()
@@ -227,8 +247,7 @@ int main()
     using MyTuple1 = tuple<int, double, string, char, bool, string>;
     using MyTuple2 = tuple<int, double, long, char, bool, long>;
     using MyTuple3 = tuple<int, double, long, bool, bool, long>;
-    // using MyTuple4 = tuple<int, double, long, bool>;
-    using MyTuple4 = tuple<int, double, string, char, bool>;
+    using MyTuple4 = tuple<int, double, char, bool>;
     using MyTuple5 = tuple<int, double, string, char, bool, string, long long>;
     using MyTuple6 = tuple<int, string, char, bool, string>;
     using MyTuple7 = tuple<int, double, char, bool>;
