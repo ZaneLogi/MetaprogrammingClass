@@ -192,10 +192,6 @@ template <class Head, class ... Tail> struct NoDuplicates<std::tuple<Head, Tail.
         typename Add<Head, typename NoDuplicates<typename std::tuple<Tail...>>::type>::type
     >::type type;
 };
-template <class T> struct NoDuplicates<std::tuple<T>>
-{
-    typedef std::tuple<T> type;
-};
 template <> struct NoDuplicates<std::tuple<>>
 {
     typedef std::tuple<> type;
