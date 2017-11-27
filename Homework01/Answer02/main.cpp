@@ -188,16 +188,8 @@ template <class Head, class ... Tail> struct NoDuplicates<std::tuple<Head, Tail.
 {
     typedef typename std::conditional<
         IndexOf<std::tuple<Tail...>, Head>::value != -1,
-        typename EraseAll<std::tuple<Tail...>, Head>::type,
-        typename std::tuple<Tail...>
-    >::type tail_type;
-
-    typedef typename NoDuplicates<typename tail_type>::type no_dups;
-
-    typedef typename std::conditional<
-        IndexOf<std::tuple<Tail...>, Head>::value != -1,
-        no_dups,
-        typename Add<Head, no_dups>::type
+        typename NoDuplicates<typename EraseAll<std::tuple<Tail...>, Head>::type>::type,
+        typename Add<Head, typename NoDuplicates<typename std::tuple<Tail...>>::type>::type
     >::type type;
 };
 template <class T> struct NoDuplicates<std::tuple<T>>
