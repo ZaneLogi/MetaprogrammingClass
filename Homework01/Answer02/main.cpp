@@ -208,6 +208,54 @@ NoDuplicates<std::tuple<int, double, char, double, int>>::type noduplicates_test
 NoDuplicates<std::tuple<char, int, double, int, double, int>>::type noduplicates_test9;
 NoDuplicates<std::tuple<int, double, int, double, int, char>>::type noduplicates_test10;
 
+//
+// For Fun, convert the data struct between Tuple and TypeList (defined in Loki library)
+//
+class NullType {};
+
+template <class Head, class Tail> struct TypeList
+{
+    typedef Head head_type;
+    typedef Tail tail_type;
+};
+
+//
+// Tuple to TypeList
+//
+template <class T> struct Tuple2TypeList;
+template <class Head, class ... Tail> struct Tuple2TypeList<std::tuple<Head, Tail...>>
+{
+    using type = typename TypeList<Head, typename Tuple2TypeList<std::tuple<Tail...>>::type>;
+};
+template <class T> struct Tuple2TypeList<std::tuple<T>>
+{
+    using type = TypeList<T, NullType>;
+};
+
+using T0 = Tuple2TypeList<std::tuple<int>>::type;
+using T1 = Tuple2TypeList<std::tuple<int, char>>::type;
+using T2 = Tuple2TypeList<std::tuple<int, char, double>>::type;
+using T3 = Tuple2TypeList<std::tuple<int, char, double, string>>::type;
+
+//
+// TypeList to Tuple
+//
+template <class T> struct TypeList2Tuple;
+template <class Head, class Tail> struct TypeList2Tuple<TypeList<Head, Tail>>
+{
+    using type = typename Add<Head, typename TypeList2Tuple<Tail>::type>::type;
+};
+template <class T> struct TypeList2Tuple<TypeList<T, NullType>>
+{
+    using type = std::tuple<T>;
+};
+
+using X0 = TypeList2Tuple<T0>::type;
+using X1 = TypeList2Tuple<T1>::type;
+using X2 = TypeList2Tuple<T2>::type;
+using X3 = TypeList2Tuple<T3>::type;
+
+
 
 int main()
 {
