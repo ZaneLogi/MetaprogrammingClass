@@ -76,15 +76,10 @@ template <class T, class ... Args> struct Append<std::tuple<Args...>, T>
 //
 // Helper
 //
-template <typename...Args> struct TypeList
-{
-    typedef std::tuple<Args...> tuple_type;
-};
-
 template<typename T, typename U> struct Add;
-template<typename T, typename ... Args> struct Add< T, TypeList<Args...> >
+template<typename T, typename ... Args> struct Add< T, std::tuple<Args...>>
 {
-    typedef TypeList<T, Args... > type;
+    typedef std::tuple<T, Args...> type;
 };
 
 //
@@ -93,18 +88,15 @@ template<typename T, typename ... Args> struct Add< T, TypeList<Args...> >
 template <class Tuple, class T> struct Erase;
 template <class T, class Head, class ... Tail> struct Erase<std::tuple<Head, Tail...>, T>
 {
-    typedef typename Add<Head, typename Erase<std::tuple<Tail...>, T>::typelist_type>::type typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef typename Add<Head, typename Erase<std::tuple<Tail...>, T>::type>::type type;
 };
 template <class T, class ... Tail> struct Erase<std::tuple<T, Tail...>, T>
 {
-    typedef TypeList<Tail...> typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef std::tuple<Tail...> type;
 };
 template <class T> struct Erase<std::tuple<>, T>
 {
-    typedef TypeList<> typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef std::tuple<> type;
 };
 
 // testing
@@ -121,18 +113,15 @@ typename Erase<std::tuple<int, double, string, char>, char>::type erase_type_tes
 template <class Tuple, class T, class U> struct Replace;
 template <class T, class U, class Head, class ... Tail> struct Replace<std::tuple<Head, Tail...>, T, U>
 {
-    typedef typename Add<Head, typename Replace<std::tuple<Tail...>, T, U>::typelist_type>::type typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef typename Add<Head, typename Replace<std::tuple<Tail...>, T, U>::type>::type type;
 };
 template <class T, class U, class ... Tail> struct Replace<std::tuple<T, Tail...>, T, U>
 {
-    typedef TypeList<U, Tail...> typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef std::tuple<U, Tail...> type;
 };
 template <class T, class U> struct Replace<std::tuple<>, T, U>
 {
-    typedef TypeList<> typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef std::tuple<> type;
 };
 
 // testing
@@ -149,18 +138,15 @@ typename Replace<std::tuple<int, char, double, long>, double, long>::type replac
 template <class Tuple, class T> struct EraseAll;
 template <class T, class Head, class ...Tail> struct EraseAll<std::tuple<Head, Tail...>, T>
 {
-    typedef typename Add<Head, typename EraseAll<std::tuple<Tail...>, T>::typelist_type>::type typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef typename Add<Head, typename EraseAll<std::tuple<Tail...>, T>::type>::type type;
 };
 template <class T, class ... Tail> struct EraseAll<std::tuple<T, Tail...>, T>
 {
-    typedef typename EraseAll<std::tuple<Tail...>, T>::typelist_type typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef typename EraseAll<std::tuple<Tail...>, T>::type type;
 };
 template <class T> struct EraseAll<std::tuple<>, T>
 {
-    typedef TypeList<> typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef std::tuple<> type;
 };
 
 // testing
@@ -177,18 +163,15 @@ typename EraseAll<std::tuple<int, double, string, int>, int>::type eraseall_type
 template <class Tuple, class T, class U> struct ReplaceAll;
 template <class T, class U, class Head, class ... Tail> struct ReplaceAll<std::tuple<Head, Tail...>, T, U>
 {
-    typedef typename Add<Head, typename ReplaceAll<std::tuple<Tail...>, T, U>::typelist_type>::type typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef typename Add<Head, typename ReplaceAll<std::tuple<Tail...>, T, U>::type>::type type;
 };
 template <class T, class U, class ... Tail> struct ReplaceAll<std::tuple<T, Tail...>, T, U>
 {
-    typedef typename Add<U, typename ReplaceAll<std::tuple<Tail...>, T, U>::typelist_type>::type typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef typename Add<U, typename ReplaceAll<std::tuple<Tail...>, T, U>::type>::type type;
 };
 template <class T, class U> struct ReplaceAll<std::tuple<>, T, U>
 {
-    typedef TypeList<> typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef std::tuple<> type;
 };
 
 // testing
@@ -205,29 +188,25 @@ template <class Head, class ... Tail> struct NoDuplicates<std::tuple<Head, Tail.
 {
     typedef typename std::conditional<
         IndexOf<std::tuple<Tail...>, Head>::value != -1,
-        typename EraseAll<std::tuple<Tail...>, Head>::typelist_type,
-        typename TypeList<Tail...>
-    >::type tail_typelist_type;
+        typename EraseAll<std::tuple<Tail...>, Head>::type,
+        typename std::tuple<Tail...>
+    >::type tail_type;
 
-    typedef typename NoDuplicates<typename tail_typelist_type::tuple_type>::typelist_type no_dups;
+    typedef typename NoDuplicates<typename tail_type>::type no_dups;
 
     typedef typename std::conditional<
         IndexOf<std::tuple<Tail...>, Head>::value != -1,
         no_dups,
         typename Add<Head, no_dups>::type
-    >::type typelist_type;
-        
-    typedef typename typelist_type::tuple_type type;
+    >::type type;
 };
 template <class T> struct NoDuplicates<std::tuple<T>>
 {
-    typedef TypeList<T> typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef std::tuple<T> type;
 };
 template <> struct NoDuplicates<std::tuple<>>
 {
-    typedef TypeList<> typelist_type;
-    typedef typename typelist_type::tuple_type type;
+    typedef std::tuple<> type;
 };
 
 NoDuplicates<std::tuple<double>>::type no_dup_test1;
